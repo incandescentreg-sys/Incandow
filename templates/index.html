@@ -7,6 +7,14 @@
     <title>Incandow</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --accent: #8b5cf6;
+            --accent-2: #ec4899;
+            --gradient: linear-gradient(135deg, #8b5cf6, #ec4899);
+            --radius: 16px;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--tg-theme-bg-color, #0f0c29);
@@ -14,23 +22,43 @@
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
-            padding: 16px;
+            padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+        }
+
+        /* ===== Header ===== */
+        .header {
+            padding: 24px 20px 12px;
+            text-align: center;
+            position: relative;
         }
         .logo {
-            font-size: 22px;
-            font-weight: 700;
-            text-align: center;
-            margin: 24px 0 4px;
-            background: linear-gradient(90deg, #f7971e, #ffd200);
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: var(--gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .logo .dot {
+            -webkit-text-fill-color: var(--accent-2);
         }
         .sub {
-            text-align: center;
             color: var(--tg-theme-hint-color, rgba(255,255,255,0.5));
             font-size: 13px;
-            margin-bottom: 24px;
+            margin-top: 4px;
         }
+
+        /* ===== Main content ===== */
+        .content {
+            flex: 1;
+            padding: 8px 16px 24px;
+        }
+        .view { display: none; animation: fadeIn 0.25s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* ===== Chips ===== */
         .chips {
             display: flex;
             flex-wrap: wrap;
@@ -40,71 +68,78 @@
         }
         .chips span {
             background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.07));
-            padding: 4px 12px;
-            border-radius: 14px;
+            padding: 5px 13px;
+            border-radius: 20px;
             font-size: 11px;
-            color: var(--tg-theme-hint-color, rgba(255,255,255,0.6));
+            font-weight: 500;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.7));
+            border: 1px solid transparent;
         }
-        .input-wrap {
-            display: flex;
-            gap: 10px;
+
+        /* ===== Input card ===== */
+        .input-card {
             background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
-            border-radius: 14px;
-            padding: 4px;
-            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius);
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            border: 1.5px solid transparent;
+            transition: border-color 0.2s;
         }
-        .input-wrap:focus-within {
-            border-color: var(--tg-theme-button-color, #f7971e);
-        }
-        .input-wrap input {
+        .input-card:focus-within { border-color: var(--accent); }
+        .input-card input {
             flex: 1;
+            min-width: 0;
             border: none;
             background: transparent;
-            padding: 12px 14px;
+            padding: 12px 10px;
             font-size: 15px;
             color: var(--tg-theme-text-color, #fff);
             outline: none;
-            min-width: 0;
         }
-        .input-wrap input::placeholder {
-            color: var(--tg-theme-hint-color, rgba(255,255,255,0.3));
-        }
-        .input-wrap button {
+        .input-card input::placeholder { color: var(--tg-theme-hint-color, rgba(255,255,255,0.3)); }
+        .input-card button {
             border: none;
-            background: var(--tg-theme-button-color, linear-gradient(135deg, #f7971e, #ffd200));
-            color: var(--tg-theme-button-text-color, #000);
-            font-weight: 600;
-            font-size: 14px;
-            padding: 0 24px;
-            border-radius: 11px;
+            background: var(--gradient);
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 0 22px;
+            border-radius: 12px;
             cursor: pointer;
+            transition: transform 0.1s, opacity 0.15s;
             white-space: nowrap;
-            transition: opacity 0.15s;
         }
-        .input-wrap button:active { opacity: 0.7; }
-        .input-wrap button:disabled { opacity: 0.35; pointer-events: none; }
+        .input-card button:active { transform: scale(0.96); }
+        .input-card button:disabled { opacity: 0.35; pointer-events: none; }
 
-        .loader { display: none; margin: 28px auto; text-align: center; }
+        .hint {
+            text-align: center;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.3));
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* ===== Loader ===== */
+        .loader { display: none; margin: 32px auto; text-align: center; }
         .loader.active { display: block; }
         .spinner {
-            width: 36px; height: 36px;
+            width: 38px; height: 38px;
             border: 3px solid var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.08));
-            border-top-color: var(--tg-theme-button-color, #f7971e);
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 12px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loader-text {
-            color: var(--tg-theme-hint-color, rgba(255,255,255,0.4));
-            font-size: 13px;
-        }
+        .loader-text { color: var(--tg-theme-hint-color, rgba(255,255,255,0.4)); font-size: 13px; }
 
+        /* ===== Error ===== */
         .error {
             display: none;
             margin-top: 16px;
-            padding: 12px 14px;
-            background: rgba(255,50,50,0.12);
+            padding: 13px 16px;
+            background: var(--tg-theme-destructive-bg-color, rgba(255,60,60,0.12));
             border-radius: 12px;
             color: #ff6b6b;
             font-size: 14px;
@@ -113,12 +148,14 @@
         }
         .error.active { display: block; }
 
+        /* ===== Result card ===== */
         .result { display: none; margin-top: 20px; }
         .result.active { display: block; }
         .card {
             background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.04));
-            border-radius: 16px;
+            border-radius: 18px;
             overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06);
         }
         .card-img {
             width: 100%;
@@ -131,16 +168,15 @@
         .card-body { padding: 16px; }
         .card-title {
             font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-weight: 650;
             line-height: 1.35;
+            margin-bottom: 4px;
         }
         .card-meta {
             color: var(--tg-theme-hint-color, rgba(255,255,255,0.45));
             font-size: 13px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
-
         .quality-select {
             width: 100%;
             padding: 12px 14px;
@@ -153,80 +189,279 @@
             margin-bottom: 12px;
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 12px center;
+            background-position: right 14px center;
         }
-        .quality-select option {
-            background: var(--tg-theme-bg-color, #1a1a2e);
-            color: var(--tg-theme-text-color, #fff);
-        }
+        .quality-select option { background: var(--tg-theme-bg-color, #1a1a2e); color: #fff; }
 
-        .btn-download {
+        .btn-primary {
             display: block;
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             border: none;
             border-radius: 12px;
-            background: var(--tg-theme-button-color, linear-gradient(135deg, #f7971e, #ffd200));
-            color: var(--tg-theme-button-text-color, #000);
-            font-weight: 600;
+            background: var(--gradient);
+            color: #fff;
+            font-weight: 700;
             font-size: 16px;
             cursor: pointer;
-            transition: opacity 0.15s;
-            text-align: center;
+            transition: transform 0.1s, opacity 0.15s;
         }
-        .btn-download:active { opacity: 0.7; }
+        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
 
-        .footer {
-            margin-top: auto;
+        /* ===== Placeholder views (future features) ===== */
+        .empty-state {
             text-align: center;
-            padding: 20px 0 10px;
-            color: var(--tg-theme-hint-color, rgba(255,255,255,0.2));
-            font-size: 11px;
+            padding: 60px 20px;
         }
+        .empty-icon {
+            width: 72px; height: 72px;
+            border-radius: 24px;
+            background: var(--gradient);
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 30px;
+        }
+        .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .empty-text { color: var(--tg-theme-hint-color, rgba(255,255,255,0.45)); font-size: 14px; line-height: 1.5; }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            margin-top: 8px;
+        }
+
+        /* ===== Support ===== */
+        .support-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.04));
+            border-radius: 18px;
+            padding: 24px 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 20px;
+        }
+        .support-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+        .support-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .support-text {
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.45));
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+        .support-faq-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .faq-item {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.03));
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .faq-item:active { background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.08)); }
+        .faq-q {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-arrow {
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.3));
+            transition: transform 0.2s;
+        }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+        .faq-a {
+            display: none;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.55));
+            line-height: 1.5;
+        }
+        .faq-item.open .faq-a { display: block; }
+
+        /* ===== Bottom nav ===== */
+        .navbar {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            display: flex;
+            background: var(--tg-theme-secondary-bg-color, rgba(20,18,40,0.92));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 8px calc(10px + env(safe-area-inset-bottom, 0px));
+            z-index: 100;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 6px 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.4));
+            transition: color 0.2s;
+            outline: none;
+        }
+        .nav-item svg { width: 24px; height: 24px; transition: transform 0.2s; }
+        .nav-item span {
+            font-size: 10.5px;
+            font-weight: 600;
+        }
+        .nav-item.active { color: var(--accent); }
+        .nav-item.active svg { transform: translateY(-1px) scale(1.05); }
+        .nav-item:active { opacity: 0.6; }
     </style>
 </head>
 <body>
-    <div class="logo">Incandow</div>
-    <div class="sub">Ссылка → видео за секунду</div>
 
-    <div class="chips">
-        <span>YouTube</span><span>TikTok</span><span>Instagram</span>
-        <span>VK</span><span>Twitter/X</span><span>Rutube</span>
+    <div class="header">
+        <div class="logo">Incandow<span class="dot">.</span></div>
+        <div class="sub">Скачивай видео из любых соцсетей</div>
     </div>
 
-    <div class="input-wrap">
-        <input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" enterkeyhint="go">
-        <button id="btnGo" onclick="fetchInfo()">Go</button>
-    </div>
+    <div class="content">
 
-    <div class="loader" id="loader">
-        <div class="spinner"></div>
-        <div class="loader-text">Получаем информацию о видео...</div>
-    </div>
+        <!-- ===== View: Home (downloader) ===== -->
+        <section class="view active" id="view-home">
+            <div class="chips">
+                <span>YouTube</span><span>TikTok</span><span>Instagram</span>
+                <span>VK</span><span>Twitter/X</span><span>Rutube</span>
+            </div>
 
-    <div class="error" id="error"></div>
+            <div class="input-card">
+                <input type="url" id="urlInput" placeholder="Вставь ссылку на видео..." autocomplete="off" enterkeyhint="go">
+                <button id="btnGo" onclick="fetchInfo()">Go</button>
+            </div>
+            <div class="hint">Поддерживаются ссылки из популярных соцсетей</div>
 
-    <div class="result" id="result">
-        <div class="card">
-            <img class="card-img" id="thumb" alt="">
-            <div class="card-body">
-                <div class="card-title" id="title"></div>
-                <div class="card-meta" id="meta"></div>
-                <select class="quality-select" id="formatSelect"></select>
-                <button class="btn-download" id="btnDownload" onclick="startDownload()">
-                    ⬇ Скачать
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <div class="loader-text">Получаем информацию о видео...</div>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result" id="result">
+                <div class="card">
+                    <img class="card-img" id="thumb" alt="">
+                    <div class="card-body">
+                        <div class="card-title" id="title"></div>
+                        <div class="card-meta" id="meta"></div>
+                        <select class="quality-select" id="formatSelect"></select>
+                        <button class="btn-primary" id="btnDownload" onclick="startDownload()">⬇ Скачать видео</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== View: History (coming soon) ===== -->
+        <section class="view" id="view-history">
+            <div class="section-title">История</div>
+            <div class="empty-state">
+                <div class="empty-icon">📜</div>
+                <div class="empty-title">Пока пусто</div>
+                <div class="empty-text">Здесь появится история<br>твоих скачиваний</div>
+            </div>
+        </section>
+
+        <!-- ===== View: Settings (coming soon) ===== -->
+        <section class="view" id="view-settings">
+            <div class="section-title">Настройки</div>
+            <div class="empty-state">
+                <div class="empty-icon">⚙️</div>
+                <div class="empty-title">Скоро</div>
+                <div class="empty-text">Тут будут настройки:<br>качество по умолчанию, тема и другое</div>
+            </div>
+        </section>
+
+        <!-- ===== View: Support ===== -->
+        <section class="view" id="view-support">
+            <div class="section-title">Поддержка</div>
+
+            <div class="support-card">
+                <div class="support-icon">💬</div>
+                <div class="support-title">Нужна помощь?</div>
+                <div class="support-text">
+                    Напиши нам в Telegram — ответим на вопросы<br>
+                    по скачиванию, ошибкам и предложениям
+                </div>
+                <button class="btn-primary" onclick="openSupport()">
+                    💬 Написать в поддержку
                 </button>
             </div>
-        </div>
+
+            <div class="support-faq">
+                <div class="support-faq-title">Частые вопросы</div>
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">Почему не скачивается видео? <span class="faq-arrow">▾</span></div>
+                    <div class="faq-a">Проверь, что ссылка скопирована полностью. Иногда соцсети (Instagram, Twitter) требуют вход в аккаунт — тогда ссылка может не открыться.</div>
+                </div>
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">Какие соцсети поддерживаются? <span class="faq-arrow">▾</span></div>
+                    <div class="faq-a">YouTube, TikTok, Instagram, VK, Twitter/X, Rutube. Список постоянно расширяется.</div>
+                </div>
+                <div class="faq-item" onclick="toggleFaq(this)">
+                    <div class="faq-q">Видео сохраняется на сервер? <span class="faq-arrow">▾</span></div>
+                    <div class="faq-a">Нет. Ссылка на видео отдаётся напрямую — файл не проходит через наш сервер и нигде не хранится.</div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
-    <div class="footer">yt-dlp · Файлы не хранятся на сервере</div>
+    <!-- ===== Bottom Navigation ===== -->
+    <nav class="navbar">
+        <button class="nav-item active" data-view="home" onclick="switchView('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>Главная</span>
+        </button>
+        <button class="nav-item" data-view="history" onclick="switchView('history')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>История</span>
+        </button>
+        <button class="nav-item" data-view="support" onclick="switchView('support')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Поддержка</span>
+        </button>
+        <button class="nav-item" data-view="settings" onclick="switchView('settings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Настройки</span>
+        </button>
+    </nav>
 
     <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
     <script>
-        // ---- Telegram Mini App SDK ----
+        // ===== Telegram Mini App SDK =====
         let tg = null;
         let isTG = false;
         try {
@@ -242,14 +477,41 @@
             if (tg && tg.HapticFeedback) {
                 if (type === 'ok') tg.HapticFeedback.notificationOccurred('success');
                 else if (type === 'err') tg.HapticFeedback.notificationOccurred('error');
-                else tg.HapticFeedback.impactOccurred('medium');
+                else tg.HapticFeedback.impactOccurred('light');
             }
         }
 
-        // ---- State ----
+        // ===== Support =====
+        const SUPPORT_USERNAME = "incandow_support"; // ← замени на свой Telegram username
+
+        function openSupport() {
+            haptic('ok');
+            const url = 'https://t.me/' + SUPPORT_USERNAME;
+            if (isTG) {
+                tg.openTelegramLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+
+        function toggleFaq(item) {
+            item.classList.toggle('open');
+            haptic('tap');
+        }
+
+        // ===== Navigation =====
+        function switchView(name) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-' + name).classList.add('active');
+            document.querySelector('.nav-item[data-view="' + name + '"]').classList.add('active');
+            haptic('tap');
+        }
+
+        // ===== State =====
         let currentUrl = '';
 
-        // ---- API calls ----
+        // ===== Downloader =====
         async function fetchInfo() {
             const url = document.getElementById('urlInput').value.trim();
             if (!url) return;
@@ -339,7 +601,6 @@
             }
         }
 
-        // ---- Events ----
         document.getElementById('urlInput').addEventListener('keydown', e => {
             if (e.key === 'Enter') fetchInfo();
         });

@@ -584,20 +584,36 @@
             document.getElementById('result').classList.add('active');
         }
 
-        function startDownload() {
+        async function startDownload() {
             if (!currentUrl) return;
             const formatId = document.getElementById('formatSelect').value;
 
-            const base = window.location.origin;
-            const dlPath = '/api/download?url=' + encodeURIComponent(currentUrl)
-                         + '&format_id=' + encodeURIComponent(formatId);
-
             haptic('ok');
 
-            if (isTG) {
-                tg.openLink(base + dlPath, { try_instant_view: false });
-            } else {
-                window.location.href = base + dlPath;
+            try {
+                // Получаем прямую ссылку через API JSON (без редиректа)
+                const base = window.location.origin;
+                const dlUrl = '/api/download?url=' + encodeURIComponent(currentUrl)
+                            + '&format_id=' + encodeURIComponent(formatId);
+
+                const res = await fetch(dlUrl);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Ошибка');
+
+                const videoUrl = data.url;
+
+                if (isTG) {
+                    // В Telegram Mini App: открываем видео во встроенном браузере
+                    tg.openLink(videoUrl, { try_instant_view: false });
+                } else {
+                    // В обычном браузере: открываем в новой вкладке
+                    window.open(videoUrl, '_blank');
+                }
+            } catch (e) {
+                const error = document.getElementById('error');
+                error.textContent = '❌ Не удалось получить ссылку на видео: ' + e.message;
+                error.classList.add('active');
+                haptic('err');
             }
         }
 

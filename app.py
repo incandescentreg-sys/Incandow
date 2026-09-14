@@ -133,14 +133,21 @@ async def telegram_webhook(request: Request):
     return {"ok": True}
 
 @app.get("/api/bot/setup")
-async def bot_setup():
+async def bot_setup(url: str = Query(None)):
     from bot import set_webhook
     if not BOT_TOKEN:
         return {"ok": False, "error": "BOT_TOKEN not set"}
-    vercel_url = os.getenv("VERCEL_URL", "")
-    if not vercel_url:
-        return {"ok": False, "error": "VERCEL_URL not set"}
-    webhook_url = f"https://{vercel_url}/{BOT_WEBHOOK_PATH.lstrip('/')}"
+    if url:
+        webhook_url = url
+    else:
+        vercel_url = (
+            os.getenv("VERCEL_PROJECT_PRODUCTION_URL")
+            or os.getenv("VERCEL_URL")
+            or ""
+        )
+        if not vercel_url:
+            return {"ok": False, "error": "VERCEL_URL not set"}
+        webhook_url = f"https://{vercel_url}/{BOT_WEBHOOK_PATH.lstrip('/')}"
     result = await set_webhook(webhook_url)
     return result
 

@@ -1,25 +1,37 @@
 import asyncio
 import logging
 import os
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from downloader import HOST_LABELS, detect_host, get_video_info
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("web")
 
-app = FastAPI(title="Incandow", version="2.0.0")
+app = FastAPI(title="Incandow", version="2.1.0")
 
-_base = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(_base, "templates"))
-static_dir = os.path.join(_base, "static")
-if os.path.isdir(static_dir):
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+_base = Path(__file__).parent
+
+# Serve static files
+static_dir = _base / "static"
+if static_dir.is_dir():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+# Cache HTML in memory
+_index_html: str | None = None
+
+
+def _load_html() -> str:
+    global _index_html
+    if _index_html is None:
+        path = _base / "templates" / "index.html"
+        _index_html = path.read_text("utf-8")
+    return _index_html
 
 
 def _run_sync(fn):
@@ -28,10 +40,9 @@ def _run_sync(fn):
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, error: str = ""):
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request, "error": error, "hosts": HOST_LABELS},
-    )
+    html = _load_html()
+    html = html.replace('__INITIAL_ERROR__', error.replace('"', '&quot;'))
+    return HTMLResponse(html)
 
 
 def _validate(url: str):
@@ -41,7 +52,6 @@ def _validate(url: str):
 
 @app.get("/api/info")
 async def api_info(url: str = Query(...), format_id: str = Query(None)):
-    """Получить информацию о видео и прямые ссылки."""
     _validate(url)
     try:
         info = await _run_sync(lambda: get_video_info(url, format_id))
@@ -56,7 +66,6 @@ async def api_info(url: str = Query(...), format_id: str = Query(None)):
 
 @app.get("/api/download")
 async def api_download(url: str = Query(...), format_id: str = Query(None)):
-    """Редирект на прямой URL видео (клиент качает напрямую с CDN)."""
     _validate(url)
     try:
         info = await _run_sync(lambda: get_video_info(url, format_id))
@@ -70,34 +79,6 @@ async def api_download(url: str = Query(...), format_id: str = Query(None)):
         raise HTTPException(500, "Не удалось найти прямую ссылку")
 
     return RedirectResponse(direct_url, status_code=307)
-
-
-@app.get("/api/proxy")
-async def api_proxy(url: str = Query(...)):
-    """
-    Прокси-стриминг: скачивает файл с CDN и отдаёт клиенту.
-    Нужен для Telegram Mini App: WebApp.downloadFile разрешает только
-    URL того же origin, поэтому файл качаем через свой бекенд.
-    """
-    async def _iter():
-        try:
-            async with httpx.AsyncClient(follow_redirects=True, timeout=180) as client:
-                async with client.stream("GET", url) as resp:
-                    resp.raise_for_status()
-                    async for chunk in resp.aiter_bytes(chunk_size=64 * 1024):
-                        yield chunk
-        except Exception as e:
-            logger.error("Proxy streaming error: %s", e)
-
-    return StreamingResponse(
-        _iter(),
-        media_type="video/mp4",
-        headers={
-            "Content-Disposition": 'attachment; filename="video.mp4"',
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "no-store",
-        },
-    )
 
 
 @app.get("/api/supported")

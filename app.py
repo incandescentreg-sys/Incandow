@@ -129,7 +129,7 @@ async def telegram_webhook(request: Request):
     update = await request.json()
     logger.info("Bot update: chat_id=%s",
                 (update.get("message") or {}).get("chat", {}).get("id"))
-    asyncio.create_task(handle_update(update))
+    await handle_update(update)
     return {"ok": True}
 
 @app.get("/api/bot/setup")

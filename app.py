@@ -119,39 +119,40 @@ async def api_supported():
     }
 
 
-# === Telegram Bot Webhook ===
-if BOT_TOKEN:
+# === Telegram Bot Webhook (always registered, checks token at runtime) ===
 
+@app.post("/" + BOT_WEBHOOK_PATH.lstrip("/"))
+async def telegram_webhook(request: Request):
+    if not BOT_TOKEN:
+        return {"ok": False, "error": "BOT_TOKEN not set"}
     from bot import handle_update
+    update = await request.json()
+    logger.info("Bot update: chat_id=%s",
+                (update.get("message") or {}).get("chat", {}).get("id"))
+    asyncio.create_task(handle_update(update))
+    return {"ok": True}
 
-    @app.post("/" + BOT_WEBHOOK_PATH.lstrip("/"))
-    async def telegram_webhook(request: Request):
-        update = await request.json()
-        logger.info("Bot update: chat_id=%s",
-                    (update.get("message") or {}).get("chat", {}).get("id"))
-        asyncio.create_task(handle_update(update))
-        return {"ok": True}
+@app.get("/api/bot/setup")
+async def bot_setup():
+    from bot import set_webhook
+    if not BOT_TOKEN:
+        return {"ok": False, "error": "BOT_TOKEN not set"}
+    vercel_url = os.getenv("VERCEL_URL", "")
+    if not vercel_url:
+        return {"ok": False, "error": "VERCEL_URL not set"}
+    webhook_url = f"https://{vercel_url}/{BOT_WEBHOOK_PATH.lstrip('/')}"
+    result = await set_webhook(webhook_url)
+    return result
 
-    @app.get("/api/bot/setup")
-    async def bot_setup():
-        from bot import set_webhook
-        vercel_url = os.getenv("VERCEL_URL", "")
-        if not vercel_url:
-            return {"ok": False, "error": "VERCEL_URL not set"}
-        webhook_url = f"https://{vercel_url}/{BOT_WEBHOOK_PATH.lstrip('/')}"
-        result = await set_webhook(webhook_url)
-        return result
-
-    @app.get("/api/bot/info")
-    async def bot_info():
-        from bot import TOKEN
-        if not TOKEN:
-            return {"ok": False, "error": "BOT_TOKEN not set"}
-        async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.get(
-                f"https://api.telegram.org/bot{TOKEN}/getWebhookInfo"
-            )
-            return r.json()
+@app.get("/api/bot/info")
+async def bot_info():
+    if not BOT_TOKEN:
+        return {"ok": False, "error": "BOT_TOKEN not set"}
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/getWebhookInfo"
+        )
+        return r.json()
 
 
 if __name__ == "__main__":

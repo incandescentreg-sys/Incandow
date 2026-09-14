@@ -21,23 +21,22 @@ Vercel — бессерверная платформа: **нельзя хран�
 ## Структура
 
 ```
-video-downloader/
-├── api/
-│   ├── index.py        # FastAPI app (entrypoint для Vercel)
-│   └── downloader.py   # yt-dlp: извлечение метаданных и прямых ссылок
+incandow/
+├── app.py            # FastAPI app (Vercel entrypoint)
+├── downloader.py     # yt-dlp: извлечение метаданных и прямых ссылок
 ├── templates/
-│   └── index.html      # веб-интерфейс
+│   └── index.html    # веб-интерфейс Mobile-first + Telegram Mini App
 ├── requirements.txt
-├── vercel.json         # maxDuration 300s, excludeFiles
+├── vercel.json       # maxDuration 300s, excludeFiles
 └── README.md
 ```
 
 ## Локальный запуск
 
 ```bash
-cd video-downloader
+cd incandow
 pip install -r requirements.txt
-uvicorn api.index:app --reload --port 8000
+uvicorn app:app --reload --port 8000
 # http://localhost:8000
 ```
 

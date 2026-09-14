@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title>Incandow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #0f0c29);
+            color: var(--tg-theme-text-color, #fff);
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin: 24px 0 4px;
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sub {
+            text-align: center;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.5));
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .chips span {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.07));
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 11px;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.6));
+        }
+        .input-wrap {
+            display: flex;
+            gap: 10px;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            border-radius: 14px;
+            padding: 4px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .input-wrap:focus-within {
+            border-color: var(--tg-theme-button-color, #f7971e);
+        }
+        .input-wrap input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 12px 14px;
+            font-size: 15px;
+            color: var(--tg-theme-text-color, #fff);
+            outline: none;
+            min-width: 0;
+        }
+        .input-wrap input::placeholder {
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.3));
+        }
+        .input-wrap button {
+            border: none;
+            background: var(--tg-theme-button-color, linear-gradient(135deg, #f7971e, #ffd200));
+            color: var(--tg-theme-button-text-color, #000);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 0 24px;
+            border-radius: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+        .input-wrap button:active { opacity: 0.7; }
+        .input-wrap button:disabled { opacity: 0.35; pointer-events: none; }
+
+        .loader { display: none; margin: 28px auto; text-align: center; }
+        .loader.active { display: block; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.08));
+            border-top-color: var(--tg-theme-button-color, #f7971e);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text {
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.4));
+            font-size: 13px;
+        }
+
+        .error {
+            display: none;
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: rgba(255,50,50,0.12);
+            border-radius: 12px;
+            color: #ff6b6b;
+            font-size: 14px;
+            text-align: center;
+            word-break: break-word;
+        }
+        .error.active { display: block; }
+
+        .result { display: none; margin-top: 20px; }
+        .result.active { display: block; }
+        .card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.04));
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .card-img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.03));
+        }
+        .card-img:not([src]), .card-img[src=""] { display: none; }
+        .card-body { padding: 16px; }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.35;
+        }
+        .card-meta {
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.45));
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .quality-select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.05));
+            color: var(--tg-theme-text-color, #fff);
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+        .quality-select option {
+            background: var(--tg-theme-bg-color, #1a1a2e);
+            color: var(--tg-theme-text-color, #fff);
+        }
+
+        .btn-download {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--tg-theme-button-color, linear-gradient(135deg, #f7971e, #ffd200));
+            color: var(--tg-theme-button-text-color, #000);
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            text-align: center;
+        }
+        .btn-download:active { opacity: 0.7; }
+
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px 0 10px;
+            color: var(--tg-theme-hint-color, rgba(255,255,255,0.2));
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">Incandow</div>
+    <div class="sub">Ссылка → видео за секунду</div>
+
+    <div class="chips">
+        <span>YouTube</span><span>TikTok</span><span>Instagram</span>
+        <span>VK</span><span>Twitter/X</span><span>Rutube</span>
+    </div>
+
+    <div class="input-wrap">
+        <input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" enterkeyhint="go">
+        <button id="btnGo" onclick="fetchInfo()">Go</button>
+    </div>
+
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text">Получаем информацию о видео...</div>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+        <div class="card">
+            <img class="card-img" id="thumb" alt="">
+            <div class="card-body">
+                <div class="card-title" id="title"></div>
+                <div class="card-meta" id="meta"></div>
+                <select class="quality-select" id="formatSelect"></select>
+                <button class="btn-download" id="btnDownload" onclick="startDownload()">
+                    ⬇ Скачать
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">yt-dlp · Файлы не хранятся на сервере</div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
+    <script>
+        // ---- Telegram Mini App SDK ----
+        let tg = null;
+        let isTG = false;
+        try {
+            if (window.Telegram && Telegram.WebApp) {
+                tg = Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                isTG = true;
+            }
+        } catch(_) {}
+
+        function haptic(type) {
+            if (tg && tg.HapticFeedback) {
+                if (type === 'ok') tg.HapticFeedback.notificationOccurred('success');
+                else if (type === 'err') tg.HapticFeedback.notificationOccurred('error');
+                else tg.HapticFeedback.impactOccurred('medium');
+            }
+        }
+
+        // ---- State ----
+        let currentUrl = '';
+
+        // ---- API calls ----
+        async function fetchInfo() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return;
+
+            currentUrl = url;
+            const loader = document.getElementById('loader');
+            const error = document.getElementById('error');
+            const result = document.getElementById('result');
+
+            error.classList.remove('active');
+            result.classList.remove('active');
+            loader.classList.add('active');
+            document.getElementById('btnGo').disabled = true;
+
+            try {
+                const res = await fetch('/api/info?url=' + encodeURIComponent(url));
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Ошибка');
+
+                haptic('ok');
+                renderResult(data);
+            } catch (e) {
+                error.textContent = '❌ ' + e.message;
+                error.classList.add('active');
+                haptic('err');
+            } finally {
+                loader.classList.remove('active');
+                document.getElementById('btnGo').disabled = false;
+            }
+        }
+
+        function renderResult(data) {
+            document.getElementById('title').textContent = data.title || 'Видео';
+
+            const parts = [];
+            if (data.host_label) parts.push(data.host_label);
+            if (data.uploader) parts.push('👤 ' + data.uploader);
+            if (data.duration) {
+                const m = Math.floor(data.duration / 60);
+                const s = String(data.duration % 60).padStart(2, '0');
+                parts.push(m + ':' + s);
+            }
+            document.getElementById('meta').textContent = parts.join(' · ');
+
+            const thumb = document.getElementById('thumb');
+            if (data.thumbnail) {
+                thumb.src = data.thumbnail;
+                thumb.style.display = 'block';
+            } else {
+                thumb.style.display = 'none';
+            }
+
+            const select = document.getElementById('formatSelect');
+            select.innerHTML = '';
+            if (data.formats && data.formats.length) {
+                data.formats.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.format_id;
+                    const size = f.filesize ? ' (' + (f.filesize / 1048576).toFixed(1) + ' МБ)' : '';
+                    opt.textContent = (f.resolution || '?') + ' · ' + (f.ext || 'mp4') + size;
+                    select.appendChild(opt);
+                });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Авто (лучшее качество)';
+                select.appendChild(opt);
+            }
+
+            document.getElementById('result').classList.add('active');
+        }
+
+        function startDownload() {
+            if (!currentUrl) return;
+            const formatId = document.getElementById('formatSelect').value;
+
+            const base = window.location.origin;
+            const dlPath = '/api/download?url=' + encodeURIComponent(currentUrl)
+                         + '&format_id=' + encodeURIComponent(formatId);
+
+            haptic('ok');
+
+            if (isTG) {
+                tg.openLink(base + dlPath, { try_instant_view: false });
+            } else {
+                window.location.href = base + dlPath;
+            }
+        }
+
+        // ---- Events ----
+        document.getElementById('urlInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') fetchInfo();
+        });
+    </script>
+</body>
+</html>
